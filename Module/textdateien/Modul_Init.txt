@@ -1,0 +1,65 @@
+Option Explicit
+
+' Hiermit werden die Startblätter initilisiert
+
+
+Sub initialisierung()
+
+
+Dim wsConfig As Worksheet
+Dim wsController As Worksheet
+Dim wsDatei1 As Worksheet
+Dim wsDatei2 As Worksheet
+Dim arrHeader As Variant
+Dim btnStarteAbgleich
+
+Application.ScreenUpdating = False
+
+loescheWorksheets (2)
+    
+With ThisWorkbook
+    .Worksheets(1).Name = "Default"
+    
+    Set wsConfig = .Worksheets.Add(After:=.Worksheets(.Worksheets.Count))
+    Set wsController = .Worksheets.Add(After:=.Worksheets(.Worksheets.Count))
+    Set wsDatei1 = .Worksheets.Add(After:=.Worksheets(.Worksheets.Count))
+    Set wsDatei2 = .Worksheets.Add(After:=.Worksheets(.Worksheets.Count))
+End With
+
+With wsConfig
+    .Activate
+    .Name = "Config"
+    ReDim arrHeader(1 To 3)
+    arrHeader = Array("Felder", "Abgleich", "Key")
+    .Range("A1:C1").Value = arrHeader
+    .Range("B2:C100000").Validation.Add xlValidateList, Formula1:="x"
+End With
+
+With wsController
+    .Activate
+    .Name = "Controller"
+    Set btnStarteAbgleich = .Buttons.Add(73.8, 256.8, 384, 114.6)
+    btnStarteAbgleich.OnAction = "starteAbgleich"
+    btnStarteAbgleich.Characters.Text = "Starte Abgleich"
+End With
+
+With wsDatei1
+    .Activate
+    .Name = "Datei1"
+    .Range("A5").Value = "Hier bitte die Daten aus der ersten Datei eingeben. Den Namen des Blattes ändern (je nach Thema)."
+End With
+
+With wsDatei2
+    .Activate
+    .Name = "Datei2"
+    .Range("A5").Value = "Hier bitte die Daten aus der ersten Datei eingeben. Den Namen des Blattes ändern (je nach Thema)."
+End With
+
+Application.DisplayAlerts = False
+    ThisWorkbook.Worksheets("Default").Delete
+Application.DisplayAlerts = True
+
+
+Application.ScreenUpdating = True
+
+End Sub
