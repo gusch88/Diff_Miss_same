@@ -1,0 +1,290 @@
+Sub DatenEinlesen()
+
+
+Dim data1() As Integer
+Dim data2() As Integer
+Dim lastRowData1 As Integer
+Dim lastColData1 As Integer
+Dim wsData1 As Worksheet
+Dim wsData2 As Worksheet
+Dim strKey As String
+Dim strValue As String
+'Dim intField As Integer
+
+Dim wsField As Worksheet
+Dim strField As String
+Dim wsOverview As Worksheet
+Dim wsMissings As Worksheet
+'''''''''''''''''''
+Dim BeginningData, EndingData
+Dim BeginningItem As Variant
+Dim loeschBlatt As Integer
+
+Dim arrAnzFelder As Variant
+Dim iÜbersichtFeld As Integer 'Zählvariable für das Übersichtsblatt
+
+Dim strNameÜbersicht As String
+
+Call PerformanceOn
+
+loeschBlatt = 5
+
+iÜbersichtFeld = 2
+strNameÜbersicht = "Übersicht Abweichungen"
+
+'Dict definieren
+Set BeginningData = CreateObject("Scripting.Dictionary")
+Set EndingData = CreateObject("Scripting.Dictionary")
+
+With ThisWorkbook
+    Set wsData1 = .Worksheets(3)
+    Set wsData2 = .Worksheets(4)
+    
+    lastRowData1 = ErstZeiNum(wsData1) - 1
+    lastColData1 = ErstSpaNum(wsData1) - 1
+    
+    Call loescheWorksheets(loeschBlatt)
+    
+    With .Worksheets
+        Set wsOverview = .Add(After:=ThisWorkbook.Worksheets(.Count))
+        Set wsMissings = .Add(After:=ThisWorkbook.Worksheets(.Count))
+    End With
+    
+End With
+
+With wsOverview
+    .Name = strNameÜbersicht
+    .Cells(1, 1).Value = "Feldname"
+    .Cells(1, 2).Value = "Anzahl Abweichungen"
+End With
+With wsMissings
+    .Name = "Missings"
+    .Cells(1, 1).Value = "Key"
+    .Cells(1, 2).Value = "Missingtyp"
+End With
+
+
+arrAnzFelder = setField(ThisWorkbook.Worksheets(1), ThisWorkbook.Worksheets(3), 2)
+
+'Daten einlesen in ein Dictionary
+For j = 1 To UBound(arrAnzFelder) 'lastColData1
+
+strField = wsData1.Cells(1, arrAnzFelder(j))
+
+With ThisWorkbook.Worksheets
+    .Add After:=ThisWorkbook.Worksheets(.Count)
+    Set wsField = ThisWorkbook.Worksheets(.Count)
+End With
+
+With wsField
+    .Name = strField
+    .Range("A1") = "Feld"
+    .Range("B1") = wsData1.Name
+    .Range("C1") = wsData2.Name
+End With
+'''''''''''''''''''''''''''
+    For i = 2 To lastRowData1
+        With wsData1
+            strKey = setKey(ThisWorkbook.Worksheets(1), 3, wsData1, i) '.Cells(i, 21) & .Cells(i, 22)
+            strValue = .Cells(i, arrAnzFelder(j))
+        End With
+        With BeginningData
+            .Add strKey, strValue
+        End With
+        
+         With wsData2
+            strKey = setKey(ThisWorkbook.Worksheets(1), 3, wsData2, i)
+            strValue = .Cells(i, arrAnzFelder(j))
+        End With
+        With EndingData
+            .Add strKey, strValue
+        End With
+    Next i
+'''''''''''''''''''
+    Dim k As Integer 'Zähler Zeilen Abweichungen
+    k = 2
+    Dim l As Integer 'Zähler Zeilen Missings
+    l = 2
+    
+    For Each BeginningItem In BeginningData.Keys
+        'Differnces
+        If EndingData.Exists(BeginningItem) Then ' if current "beginning" dict key is in "ending" dict
+            If BeginningData.Item(BeginningItem) <> EndingData.Item(BeginningItem) Then ' if items don't match
+                With wsField
+                    .Cells(k, 1) = BeginningItem
+                    .Cells(k, 2) = BeginningData.Item(BeginningItem)
+                    .Cells(k, 3) = EndingData.Item(BeginningItem)
+                End With
+                k = k + 1
+            End If
+        ' Missings
+        Else:
+            'Debug.Print "-----------"
+            'Debug.Print BeginningItem & " ist nicht vorhanden!"
+            With wsMissings
+                .Cells(l, 1) = BeginningItem
+                .Cells(l, 2) = "Fehlt in Target"
+            End With
+            l = l + 1
+        End If
+    Next
+    
+    ' Felder ohne Diff markieren
+    If k - 2 = 0 Then wsField.Tab.Color = RGB(51, 204, 51)
+    
+    
+    With wsOverview
+        .Cells(iÜbersichtFeld, 1) = strField
+        .Hyperlinks.Add Anchor:=.Cells(iÜbersichtFeld, 1), Address:="", SubAddress:=strField & "!A1", TextToDisplay:=strField
+        .Cells(iÜbersichtFeld, 2) = k - 2
+    End With
+    
+    
+    'Nachbrenner Missings
+    For Each EndingItem In EndingData.Keys
+        If BeginningData.Exists(EndingItem) = False Then ' if current "beginning" dict key is in "ending" dict
+            With wsMissings
+                .Cells(l, 1) = EndingItem
+                .Cells(l, 2) = "Fehlt in Master"
+            End With
+            l = l + 1
+        End If
+    Next
+    
+BeginningData.RemoveAll
+EndingData.RemoveAll
+
+
+wsField.Hyperlinks.Add Anchor:=wsField.Range("H1"), Address:="", SubAddress:="'" & strNameÜbersicht & "'!A1", TextToDisplay:="Zurück zur Übersicht!"
+wsField.Columns.AutoFit
+
+Debug.Print (strField & " abgeschlossen" & vbCrLf & "##########")
+'''''''''''''''''''
+
+iÜbersichtFeld = iÜbersichtFeld + 1
+
+Next j
+
+wsOverview.Columns.AutoFit
+wsMissings.Columns.AutoFit
+wsData1.Columns.AutoFit
+wsData2.Columns.AutoFit
+
+ThisWorkbook.Worksheets(strNameÜbersicht).Activate
+
+Call PerformanceOff
+
+MsgBox prompt:="Abgleich erfolgreich!", Title:="Erfrolgreiche Verarbeitung"
+
+
+Exit Sub
+
+Fehler:
+Call PerformanceOff
+
+End Sub
+
+
+Private Function getKey(ByVal wsConfig As Worksheet, ByVal colKey As Integer, Optional ByVal colField As Integer = 1)
+
+Dim arrKey As Variant
+Dim intAnzFelder As Integer
+Dim iFelder As Integer
+
+With wsConfig
+
+    .Activate
+    intAnzFelder = Application.WorksheetFunction.CountA(.Columns(colField)) 'Header wird abgezogen
+
+
+    ReDim arrKey(1 To intAnzFelder - 1)
+    
+    For iFelder = 2 To intAnzFelder
+        arrKey(iFelder - 1) = .Cells(iFelder, colKey)
+    Next iFelder
+
+End With
+
+getKey = arrKey
+
+
+End Function
+
+Private Function setKey(ByVal wsConfig As Worksheet, ByVal colKey As Integer, ByVal wsDatei As Worksheet, ByVal intRow As Integer, Optional ByVal colField As Integer = 1)
+
+Dim myArr As Variant
+Dim i As Integer
+Dim rngBereich As Range
+Dim strKey As String
+
+myArr = getKey(wsConfig, colKey)
+
+strKey = "||"
+
+With wsDatei
+    .Activate
+
+    For i = 1 To UBound(myArr)
+        If myArr(i) = "x" Then
+            If rngBereich Is Nothing Then
+                Set rngBereich = .Range(Cells(intRow, i), Cells(intRow, i))
+            Else:
+                Set rngBereich = Union(rngBereich, .Range(Cells(intRow, i), Cells(intRow, i)))
+            End If
+        End If
+'        Debug.Print (i & ": " & myArr(i))
+'        Debug.Print ("-------")
+'        On Error Resume Next
+
+        
+    Next i
+    'Debug.Print (rngBereich.Address)
+    
+    myArr = rngBereich.Value
+    
+    For Each x In myArr
+        strKey = strKey & x & "||"
+    Next
+                    
+    
+End With
+
+setKey = strKey
+
+End Function
+
+Private Function setField(ByVal wsConfig As Worksheet, ByVal wsDatei As Worksheet, ByVal colValue As Integer, Optional ByVal colField As Integer = 1)
+
+Dim arrKey As Variant
+Dim arrFelder As Variant
+Dim iAnzWerte As Integer
+
+With ThisWorkbook
+
+iAnzWerte = 1
+
+arrKey = getKey(wsConfig, colValue)
+
+ReDim arrFelder(1 To UBound(arrKey))
+   
+    '.Worksheets(3).Activate
+    For x = 1 To UBound(arrKey)
+        If arrKey(x) = "x" Then
+            arrFelder(iAnzWerte) = x
+            iAnzWerte = iAnzWerte + 1
+        End If
+        'Debug.Print (arrFelder(x))
+    Next
+    
+End With
+
+ReDim Preserve arrFelder(1 To iAnzWerte - 1)
+
+'For x = 1 To iAnzWerte - 1
+'    Debug.Print (arrFelder(x) & vbCrLf & "####")
+'
+'Next
+
+setField = arrFelder
+
+End Function

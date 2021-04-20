@@ -1,0 +1,86 @@
+Option Explicit
+
+'Quick Reference
+
+'Public Function ErstZeiNum
+'Public Function ErstSpaNum
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'INPUT          : Sheet, das Worksheet, in dem wir die letzte Zeile finden wollen
+'OUTPUT         : Long, die erste Zeile, die nicht befüllt ist.
+'SPECIAL CASE:  : wenn das Sheet leer ist, ist die erste Zeile 1
+Public Function ErstZeiNum(Sheet As Worksheet, Optional Spalte As Long = 1) As Long
+    If Application.WorksheetFunction.CountA(Sheet.Cells(1, Spalte).EntireColumn) <> 0 Then
+        ErstZeiNum = Sheet.Cells(1, Spalte).EntireColumn.Find(What:="*", _
+                                    LookIn:=xlFormulas, _
+                                    SearchOrder:=xlByRows, _
+                                    SearchDirection:=xlPrevious).Row
+    Else
+        ErstZeiNum = 0
+    End If
+    ErstZeiNum = ErstZeiNum + 1
+End Function
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'INPUT          : Sheet, das Worksheet, in dem wir die letzte Spalte finden wollen
+'OUTPUT         : Long, die erste Spalte, die nicht befüllt ist.
+'SPECIAL CASE:  : wenn das Sheet leer ist, ist die erste Zeile 1
+Public Function ErstSpaNum(Sheet As Worksheet, Optional Zeile As Long = 1) As Long
+    If Application.WorksheetFunction.CountA(Sheet.Cells(Zeile, 1).EntireRow) <> 0 Then
+        ErstSpaNum = Sheet.Cells(Zeile, 1).EntireRow.Find(What:="*", _
+                                    LookIn:=xlFormulas, _
+                                    SearchOrder:=xlByColumns, _
+                                    SearchDirection:=xlPrevious).Column
+    Else
+        ErstSpaNum = 0
+    End If
+    ErstSpaNum = ErstSpaNum + 1
+End Function
+
+
+
+Public Sub loescheWorksheets(posSheet1 As Integer, Optional posSheet2 As Integer = 0)
+
+Application.DisplayAlerts = False
+
+If posSheet2 = 0 Or posSheet2 >= ThisWorkbook.Worksheets.Count Then
+    posSheet2 = ThisWorkbook.Worksheets.Count
+End If
+
+Dim intCountSheetsDel As Integer
+Dim i As Integer
+
+intCountSheetsDel = posSheet2 - posSheet1
+i = 0
+
+
+While intCountSheetsDel >= i
+    Sheets(posSheet1).Delete
+    i = i + 1
+Wend
+
+Application.DisplayAlerts = True
+
+
+End Sub
+
+
+Public Sub PerformanceOn()
+
+Application.ScreenUpdating = False
+Application.Calculation = xlCalculationManual
+
+End Sub
+
+Public Sub PerformanceOff()
+
+Application.ScreenUpdating = True
+Application.Calculation = xlCalculationAutomatic
+
+End Sub
+
+Sub Loesche()
+
+Call loescheWorksheets(4)
+
+End Sub
