@@ -1,4 +1,4 @@
-Sub DatenEinlesen()
+Sub starteAbgleich()
 
 
 Dim data1() As Integer
@@ -28,6 +28,7 @@ Dim strNameÜbersicht As String
 Call PerformanceOn
 
 loeschBlatt = 5
+Call loescheWorksheets(loeschBlatt)
 
 iÜbersichtFeld = 2
 strNameÜbersicht = "Übersicht Abweichungen"
@@ -40,10 +41,13 @@ With ThisWorkbook
     Set wsData1 = .Worksheets(3)
     Set wsData2 = .Worksheets(4)
     
+    If IsEmpty(wsData1.Range("A1")) Or IsEmpty(wsData2.Range("A1")) Then ' Falls keine Daten eigegeben wurden wird das Programm beendet
+        MsgBox ("Bitte Daten eingeben")
+        Exit Sub
+    End If
+    
     lastRowData1 = ErstZeiNum(wsData1) - 1
     lastColData1 = ErstSpaNum(wsData1) - 1
-    
-    Call loescheWorksheets(loeschBlatt)
     
     With .Worksheets
         Set wsOverview = .Add(After:=ThisWorkbook.Worksheets(.Count))

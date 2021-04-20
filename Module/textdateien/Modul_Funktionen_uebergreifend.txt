@@ -39,23 +39,23 @@ End Function
 
 
 
-Public Sub loescheWorksheets(posSheet1 As Integer, Optional posSheet2 As Integer = 0)
+Public Sub loescheWorksheets(posSheetStart As Integer, Optional posSheetEnd As Integer = 0)
 
 Application.DisplayAlerts = False
 
-If posSheet2 = 0 Or posSheet2 >= ThisWorkbook.Worksheets.Count Then
-    posSheet2 = ThisWorkbook.Worksheets.Count
+If posSheetEnd = 0 Or posSheetEnd >= ThisWorkbook.Worksheets.Count Then
+    posSheetEnd = ThisWorkbook.Worksheets.Count
 End If
 
 Dim intCountSheetsDel As Integer
 Dim i As Integer
 
-intCountSheetsDel = posSheet2 - posSheet1
+intCountSheetsDel = posSheetEnd - posSheetStart
 i = 0
 
 
 While intCountSheetsDel >= i
-    Sheets(posSheet1).Delete
+    Sheets(posSheetStart).Delete
     i = i + 1
 Wend
 
@@ -79,8 +79,3 @@ Application.Calculation = xlCalculationAutomatic
 
 End Sub
 
-Sub Loesche()
-
-Call loescheWorksheets(4)
-
-End Sub
