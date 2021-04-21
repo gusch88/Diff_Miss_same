@@ -4,10 +4,15 @@ Sub starteAbgleich()
 Dim data1() As Integer
 Dim data2() As Integer
 Dim lastRowData1 As Integer
+Dim lastRowData2 As Integer
 Dim lastColData1 As Integer
 Dim wsData1 As Worksheet
 Dim wsData2 As Worksheet
+
+Dim wsConfig As Worksheet
+Dim arrKey As Variant
 Dim strKey As String
+Dim iKey As Integer
 Dim strValue As String
 'Dim intField As Integer
 
@@ -38,6 +43,7 @@ Set BeginningData = CreateObject("Scripting.Dictionary")
 Set EndingData = CreateObject("Scripting.Dictionary")
 
 With ThisWorkbook
+    Set wsConfig = .Worksheets(1)
     Set wsData1 = .Worksheets(3)
     Set wsData2 = .Worksheets(4)
     
@@ -47,6 +53,7 @@ With ThisWorkbook
     End If
     
     lastRowData1 = ErstZeiNum(wsData1) - 1
+    lastRowData2 = ErstZeiNum(wsData2) - 1
     lastColData1 = ErstSpaNum(wsData1) - 1
     
     With .Worksheets
@@ -68,7 +75,15 @@ With wsMissings
 End With
 
 
-arrAnzFelder = setField(ThisWorkbook.Worksheets(1), ThisWorkbook.Worksheets(3), 2)
+'arrAnzFelder = setField(ThisWorkbook.Worksheets(1), ThisWorkbook.Worksheets(3), 2)
+arrAnzFelder = getKey(wsConfig, 2)
+arrKey = getKey(wsConfig, 3)
+
+
+'##################Debugger##################'
+'        If i = 6 Then Debug.Print (i)
+'##################Debugger##################'
+                
 
 'Daten einlesen in ein Dictionary
 For j = 1 To UBound(arrAnzFelder) 'lastColData1
@@ -82,22 +97,33 @@ End With
 
 With wsField
     .Name = strField
-    .Range("A1") = "Feld"
+    .Range("A1") = "Key"
     .Range("B1") = wsData1.Name
     .Range("C1") = wsData2.Name
 End With
 '''''''''''''''''''''''''''
     For i = 2 To lastRowData1
         With wsData1
-            strKey = setKey(ThisWorkbook.Worksheets(1), 3, wsData1, i) '.Cells(i, 21) & .Cells(i, 22)
+            strKey = "||"
+            For iKey = 1 To UBound(arrKey)
+                strKey = strKey & .Cells(i, arrKey(iKey)) & "||"
+            Next iKey
+            
             strValue = .Cells(i, arrAnzFelder(j))
         End With
         With BeginningData
             .Add strKey, strValue
         End With
+    Next i
         
+        
+    For i = 2 To lastRowData2
          With wsData2
-            strKey = setKey(ThisWorkbook.Worksheets(1), 3, wsData2, i)
+            strKey = "||"
+            For iKey = 1 To UBound(arrKey)
+                strKey = strKey & .Cells(i, arrKey(iKey)) & "||"
+            Next iKey
+            
             strValue = .Cells(i, arrAnzFelder(j))
         End With
         With EndingData
@@ -155,6 +181,8 @@ End With
         End If
     Next
     
+    
+    
 BeginningData.RemoveAll
 EndingData.RemoveAll
 
@@ -168,6 +196,15 @@ Debug.Print (strField & " abgeschlossen" & vbCrLf & "##########")
 iÜbersichtFeld = iÜbersichtFeld + 1
 
 Next j
+
+With wsOverview
+     With .Range("A" & iÜbersichtFeld & ":B" & iÜbersichtFeld).Borders(xlEdgeTop)
+        .LineStyle = xlContinuous
+        .Weight = xlThick
+     End With
+     .Hyperlinks.Add Anchor:=.Cells(iÜbersichtFeld + 1, 1), Address:="", SubAddress:=wsMissings.Name & "!A1", TextToDisplay:="MISSINGS"
+     .Cells(iÜbersichtFeld, 2) = Application.WorksheetFunction.CountA(.Columns(2)) - 1
+End With
 
 wsOverview.Columns.AutoFit
 wsMissings.Columns.AutoFit
@@ -194,6 +231,9 @@ Private Function getKey(ByVal wsConfig As Worksheet, ByVal colKey As Integer, Op
 Dim arrKey As Variant
 Dim intAnzFelder As Integer
 Dim iFelder As Integer
+Dim iKey
+
+iKey = 1 'Position der Key in dem auszugebenen Array
 
 With wsConfig
 
@@ -204,10 +244,15 @@ With wsConfig
     ReDim arrKey(1 To intAnzFelder - 1)
     
     For iFelder = 2 To intAnzFelder
-        arrKey(iFelder - 1) = .Cells(iFelder, colKey)
+        If .Cells(iFelder, colKey) = "x" Then
+            arrKey(iKey) = iFelder - 1
+            iKey = iKey + 1
+        End If
     Next iFelder
 
 End With
+
+ReDim Preserve arrKey(1 To iKey - 1)
 
 getKey = arrKey
 
@@ -220,6 +265,9 @@ Dim myArr As Variant
 Dim i As Integer
 Dim rngBereich As Range
 Dim strKey As String
+Dim bolArray As Boolean
+
+bolArray = False
 
 myArr = getKey(wsConfig, colKey)
 
@@ -234,61 +282,28 @@ With wsDatei
                 Set rngBereich = .Range(Cells(intRow, i), Cells(intRow, i))
             Else:
                 Set rngBereich = Union(rngBereich, .Range(Cells(intRow, i), Cells(intRow, i)))
+                bolArray = True
             End If
         End If
 '        Debug.Print (i & ": " & myArr(i))
 '        Debug.Print ("-------")
 '        On Error Resume Next
-
         
     Next i
     'Debug.Print (rngBereich.Address)
-    
-    myArr = rngBereich.Value
-    
-    For Each x In myArr
-        strKey = strKey & x & "||"
-    Next
+    If bolArray = True Then
+        myArr = rngBereich.Value
+        
+        For Each x In myArr
+            strKey = strKey & x & "||"
+        Next
+    Else:
+        strKey = rngBereich.Value
+    End If
                     
     
 End With
 
 setKey = strKey
-
-End Function
-
-Private Function setField(ByVal wsConfig As Worksheet, ByVal wsDatei As Worksheet, ByVal colValue As Integer, Optional ByVal colField As Integer = 1)
-
-Dim arrKey As Variant
-Dim arrFelder As Variant
-Dim iAnzWerte As Integer
-
-With ThisWorkbook
-
-iAnzWerte = 1
-
-arrKey = getKey(wsConfig, colValue)
-
-ReDim arrFelder(1 To UBound(arrKey))
-   
-    '.Worksheets(3).Activate
-    For x = 1 To UBound(arrKey)
-        If arrKey(x) = "x" Then
-            arrFelder(iAnzWerte) = x
-            iAnzWerte = iAnzWerte + 1
-        End If
-        'Debug.Print (arrFelder(x))
-    Next
-    
-End With
-
-ReDim Preserve arrFelder(1 To iAnzWerte - 1)
-
-'For x = 1 To iAnzWerte - 1
-'    Debug.Print (arrFelder(x) & vbCrLf & "####")
-'
-'Next
-
-setField = arrFelder
 
 End Function
