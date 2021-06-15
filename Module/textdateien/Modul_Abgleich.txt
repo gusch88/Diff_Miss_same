@@ -104,11 +104,17 @@ End With
 '''''''''''''''''''''''''''
     For i = 2 To lastRowData1
         With wsData1
-            strKey = "||"
-            For iKey = 1 To UBound(arrKey)
-                strKey = strKey & .Cells(i, arrKey(iKey)) & "||"
-            Next iKey
-            
+            strKey = ""
+            If UBound(arrKey) = 1 Then
+                For iKey = 1 To UBound(arrKey)
+                    strKey = strKey & .Cells(i, arrKey(iKey))
+                Next iKey
+            Else
+                For iKey = 1 To UBound(arrKey)
+                    strKey = strKey & .Cells(i, arrKey(iKey)) & "||"
+                Next iKey
+            End If
+                
             strValue = .Cells(i, arrAnzFelder(j))
         End With
         With BeginningData
@@ -119,10 +125,16 @@ End With
         
     For i = 2 To lastRowData2
          With wsData2
-            strKey = "||"
-            For iKey = 1 To UBound(arrKey)
-                strKey = strKey & .Cells(i, arrKey(iKey)) & "||"
-            Next iKey
+            strKey = ""
+            If UBound(arrKey) = 1 Then
+                For iKey = 1 To UBound(arrKey)
+                    strKey = strKey & .Cells(i, arrKey(iKey))
+                Next iKey
+            Else
+                For iKey = 1 To UBound(arrKey)
+                    strKey = strKey & .Cells(i, arrKey(iKey)) & "||"
+                Next iKey
+            End If
             
             strValue = .Cells(i, arrAnzFelder(j))
         End With
@@ -202,8 +214,10 @@ With wsOverview
         .LineStyle = xlContinuous
         .Weight = xlThick
      End With
-     .Hyperlinks.Add Anchor:=.Cells(iÜbersichtFeld + 1, 1), Address:="", SubAddress:=wsMissings.Name & "!A1", TextToDisplay:="MISSINGS"
-     .Cells(iÜbersichtFeld, 2) = Application.WorksheetFunction.CountA(.Columns(2)) - 1
+     .Hyperlinks.Add Anchor:=.Cells(iÜbersichtFeld, 1), Address:="", SubAddress:=wsMissings.Name & "!A1", TextToDisplay:="MISSINGS_MASTER"
+     .Cells(iÜbersichtFeld, 2) = Application.WorksheetFunction.CountIf(wsMissings.Columns(2), "=Fehlt in Master") - 1
+     .Hyperlinks.Add Anchor:=.Cells(iÜbersichtFeld + 1, 1), Address:="", SubAddress:=wsMissings.Name & "!A1", TextToDisplay:="MISSINGS_TARGET"
+     .Cells(iÜbersichtFeld + 1, 2) = Application.WorksheetFunction.CountIf(wsMissings.Columns(2), "=Fehlt in Target") - 1
 End With
 
 wsOverview.Columns.AutoFit
@@ -214,7 +228,6 @@ wsData2.Columns.AutoFit
 ThisWorkbook.Worksheets(strNameÜbersicht).Activate
 
 Call PerformanceOff
-
 MsgBox prompt:="Abgleich erfolgreich!", Title:="Erfrolgreiche Verarbeitung"
 
 
