@@ -67,6 +67,7 @@ With wsOverview
     .Name = strNameÜbersicht
     .Cells(1, 1).Value = "Feldname"
     .Cells(1, 2).Value = "Anzahl Abweichungen"
+    .Cells(1, 3).Value = "Nicht erklärte Abweichungen"
 End With
 With wsMissings
     .Name = "Missings"
@@ -100,6 +101,8 @@ With wsField
     .Range("A1") = "Key"
     .Range("B1") = wsData1.Name
     .Range("C1") = wsData2.Name
+    .Range("D1") = "Begründung"
+    .Range("E1") = "Platz für weitere Analysen -->"
 End With
 '''''''''''''''''''''''''''
     For i = 2 To lastRowData1
@@ -179,6 +182,7 @@ End With
         .Cells(iÜbersichtFeld, 1) = strField
         .Hyperlinks.Add Anchor:=.Cells(iÜbersichtFeld, 1), Address:="", SubAddress:=strField & "!A1", TextToDisplay:=strField
         .Cells(iÜbersichtFeld, 2) = k - 2
+        .Cells(iÜbersichtFeld, 3).FormulaLocal = "=" & .Cells(iÜbersichtFeld, 2).Address & "-ANZAHL2(" & wsMissings.Name & "!D:D)"
     End With
     
     
@@ -215,9 +219,10 @@ With wsOverview
         .Weight = xlThick
      End With
      .Hyperlinks.Add Anchor:=.Cells(iÜbersichtFeld, 1), Address:="", SubAddress:=wsMissings.Name & "!A1", TextToDisplay:="MISSINGS_MASTER"
-     .Cells(iÜbersichtFeld, 2) = Application.WorksheetFunction.CountIf(wsMissings.Columns(2), "=Fehlt in Master") - 1
+     .Cells(iÜbersichtFeld, 2) = Application.WorksheetFunction.CountIf(wsMissings.Columns(2), "=Fehlt in Master")
+     .Cells(iÜbersichtFeld, 3).FormulaLocal = "=" & .Cells(iÜbersichtFeld, 2).Address & "+" & .Cells(iÜbersichtFeld + 1, 2).Address & "-ANZAHL2(" & wsMissings.Name & "!D:D)"
      .Hyperlinks.Add Anchor:=.Cells(iÜbersichtFeld + 1, 1), Address:="", SubAddress:=wsMissings.Name & "!A1", TextToDisplay:="MISSINGS_TARGET"
-     .Cells(iÜbersichtFeld + 1, 2) = Application.WorksheetFunction.CountIf(wsMissings.Columns(2), "=Fehlt in Target") - 1
+     .Cells(iÜbersichtFeld + 1, 2) = Application.WorksheetFunction.CountIf(wsMissings.Columns(2), "=Fehlt in Target")
 End With
 
 wsOverview.Columns.AutoFit
