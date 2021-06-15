@@ -219,10 +219,10 @@ With wsOverview
         .Weight = xlThick
      End With
      .Hyperlinks.Add Anchor:=.Cells(iÜbersichtFeld, 1), Address:="", SubAddress:=wsMissings.Name & "!A1", TextToDisplay:="MISSINGS_MASTER"
-     .Cells(iÜbersichtFeld, 2) = Application.WorksheetFunction.CountIf(wsMissings.Columns(2), "=Fehlt in Master") - 1
+     .Cells(iÜbersichtFeld, 2) = Application.WorksheetFunction.CountIf(wsMissings.Columns(2), "=Fehlt in Master")
      .Cells(iÜbersichtFeld, 3).FormulaLocal = "=" & .Cells(iÜbersichtFeld, 2).Address & "+" & .Cells(iÜbersichtFeld + 1, 2).Address & "-ANZAHL2(" & wsMissings.Name & "!D:D)"
      .Hyperlinks.Add Anchor:=.Cells(iÜbersichtFeld + 1, 1), Address:="", SubAddress:=wsMissings.Name & "!A1", TextToDisplay:="MISSINGS_TARGET"
-     .Cells(iÜbersichtFeld + 1, 2) = Application.WorksheetFunction.CountIf(wsMissings.Columns(2), "=Fehlt in Target") - 1
+     .Cells(iÜbersichtFeld + 1, 2) = Application.WorksheetFunction.CountIf(wsMissings.Columns(2), "=Fehlt in Target")
 End With
 
 wsOverview.Columns.AutoFit
