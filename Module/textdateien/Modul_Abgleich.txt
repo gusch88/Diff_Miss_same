@@ -73,6 +73,7 @@ With wsMissings
     .Name = "Missings"
     .Cells(1, 1).Value = "Key"
     .Cells(1, 2).Value = "Missingtyp"
+    .Cells(1, 3).Value = "Begründung"
 End With
 
 
@@ -182,7 +183,7 @@ End With
         .Cells(iÜbersichtFeld, 1) = strField
         .Hyperlinks.Add Anchor:=.Cells(iÜbersichtFeld, 1), Address:="", SubAddress:=strField & "!A1", TextToDisplay:=strField
         .Cells(iÜbersichtFeld, 2) = k - 2
-        .Cells(iÜbersichtFeld, 3).FormulaLocal = "=" & .Cells(iÜbersichtFeld, 2).Address & "-ANZAHL2(" & wsMissings.Name & "!D:D)"
+        .Cells(iÜbersichtFeld, 3).FormulaLocal = "=" & .Cells(iÜbersichtFeld, 2).Address & "-ANZAHL2(" & wsField.Name & "!D:D)+1"
     End With
     
     
@@ -220,7 +221,7 @@ With wsOverview
      End With
      .Hyperlinks.Add Anchor:=.Cells(iÜbersichtFeld, 1), Address:="", SubAddress:=wsMissings.Name & "!A1", TextToDisplay:="MISSINGS_MASTER"
      .Cells(iÜbersichtFeld, 2) = Application.WorksheetFunction.CountIf(wsMissings.Columns(2), "=Fehlt in Master")
-     .Cells(iÜbersichtFeld, 3).FormulaLocal = "=" & .Cells(iÜbersichtFeld, 2).Address & "+" & .Cells(iÜbersichtFeld + 1, 2).Address & "-ANZAHL2(" & wsMissings.Name & "!D:D)"
+     .Cells(iÜbersichtFeld, 3).FormulaLocal = "=" & .Cells(iÜbersichtFeld, 2).Address & "+" & .Cells(iÜbersichtFeld + 1, 2).Address & "-ANZAHL2(" & wsMissings.Name & "!D:D)+1"
      .Hyperlinks.Add Anchor:=.Cells(iÜbersichtFeld + 1, 1), Address:="", SubAddress:=wsMissings.Name & "!A1", TextToDisplay:="MISSINGS_TARGET"
      .Cells(iÜbersichtFeld + 1, 2) = Application.WorksheetFunction.CountIf(wsMissings.Columns(2), "=Fehlt in Target")
 End With
